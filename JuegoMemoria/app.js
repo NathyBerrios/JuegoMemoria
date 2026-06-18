@@ -16,6 +16,7 @@ const state = {
   iniciado: false       // FALSE antes de que el jugador haga clic en Iniciar
 };
 
+// Referencias al DOM
 const tablero    = document.getElementById('tablero');
 const btnIniciar = document.getElementById('btnIniciar');
 const inputNombre = document.getElementById('inputNombre');
@@ -23,6 +24,7 @@ const selectDificultad = document.getElementById('selectDificultad');
 const parrafoMovimientos = document.getElementById('movimientos');
 const parrafoMensaje = document.getElementById('mensaje');
 
+// Mezcla el arreglo con Fisher-Yates. Devuelve una copia nueva.
 function barajar(arreglo) {
   const copia = [...arreglo];
   for (let i = copia.length - 1; i > 0; i--) {
@@ -32,6 +34,7 @@ function barajar(arreglo) {
   return copia;
 }
 
+// Prepara el estado y llama a construirTablero() una sola vez.
 function iniciarJuego() {
   const dificultad = selectDificultad.value;
   let cantidadPares;
@@ -57,48 +60,55 @@ function iniciarJuego() {
   state.iniciado    = true;
 
   parrafoMensaje.textContent = '';
-  render();
+  construirTablero();
 }
 
-function render() {
-  // Limpiamos el tablero antes de redibujar
+// Crea los elementos div de cada carta UNA SOLA VEZ al iniciar.
+function construirTablero() {
+  // Limpiamos el tablero solo aquí, al inicio de cada partida
   tablero.innerHTML = '';
 
-  // Por cada carta en el estado, creamos un elemento div
   state.cartas.forEach(function(carta, indice) {
     const div = document.createElement('div');
     div.classList.add('carta');
-
-    // Guardamos el índice como dato del elemento (lo usamos en el click)
     div.dataset.indice = indice;
+    div.textContent = '?';  // todas boca abajo al empezar
+    tablero.appendChild(div);
+  });
 
-    // Decidimos qué mostrar según el estado de la carta
+  // Actualizamos contador
+  parrafoMovimientos.textContent = 'Movimientos: ' + state.movimientos;
+}
+
+// Recorre los divs existentes y actualiza solo clases y texto
+function actualizarVistas() {
+  // tablero.children son los divs que ya existen en el DOM
+  const divs = tablero.children;
+
+  state.cartas.forEach(function(carta, indice) {
+    const div = divs[indice];
+
+    // Limpiamos las clases variables (dejamos solo 'carta')
+    div.classList.remove('volteada', 'encontrada');
+
     if (carta.encontrada) {
-      // Par encontrado: mostramos emoji con fondo verde
       div.classList.add('encontrada');
       div.textContent = carta.emoji;
 
     } else if (carta.volteada) {
-      // Volteada en este turno: mostramos emoji con fondo claro
       div.classList.add('volteada');
       div.textContent = carta.emoji;
 
     } else {
-      // Boca abajo: mostramos símbolo de pregunta
       div.textContent = '?';
     }
-
-    tablero.appendChild(div);
   });
 
   // Actualizamos el contador de movimientos
   parrafoMovimientos.textContent = 'Movimientos: ' + state.movimientos;
 }
 
-// FUNCIÓN: clickCarta
-// Se ejecuta cuando el jugador hace click en una carta.
-// Recibe el índice de la carta clickeada.
-// ============================================================
+// Lógica del juego cuando se hace click en una carta.
 function manejarClickCarta(indice) {
   // --- Guardas: situaciones en que ignoramos el click ---
 
@@ -139,13 +149,13 @@ function manejarClickCarta(indice) {
       state.seleccionadas = [];
       // No bloqueamos: el jugador puede seguir jugando de inmediato
 
-      render();
+      actualizarVistas();
       revisarVictoria();
 
     } else {
       // No coinciden: bloqueamos mientras se muestran y luego ocultamos
       state.bloqueado = true;
-      render(); // mostramos las dos cartas volteadas
+      actualizarVistas();
 
       setTimeout(function() {
         // Ocultamos las dos cartas en el estado
@@ -153,20 +163,16 @@ function manejarClickCarta(indice) {
         state.cartas[indiceB].volteada = false;
         state.seleccionadas = [];
         state.bloqueado = false; // desbloqueamos el tablero
-        render(); // redibujamos
+        actualizarVistas();
       }, 900);
     }
   } else {
-    // Solo hay una carta volteada, redibujamos para mostrarla
-    render();
+    // Solo hay una carta volteada, actualizamos la vista
+    actualizarVistas();
   }
 }
 
-
-// ============================================================
-// FUNCIÓN: revisarVictoria
 // Revisa si todas las cartas fueron encontradas.
-// ============================================================
 function revisarVictoria() {
   const todasEncontradas = state.cartas.every(function(carta) {
     return carta.encontrada;
