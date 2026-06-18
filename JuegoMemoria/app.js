@@ -39,16 +39,20 @@ function iniciarJuego() {
 
   const emojisUsados = TODOS_LOS_EMOJIS.slice(0, cantidadPares);
 
+  // Creamos dos cartas por cada emoji (los pares)
   const mazo = [];
   emojisUsados.forEach(function(emoji) {
-    mazo.push({ emoji: emoji, encontrada: false });
-    mazo.push({ emoji: emoji, encontrada: false });
+    mazo.push({ emoji: emoji, encontrada: false, volteada: false });
+    mazo.push({ emoji: emoji, encontrada: false, volteada: false });
   });
 
-  nombre    = inputNombre.value;
-  cartas    = barajar(mazo);
-  volteadas = [];
-  movimientos = 0;
+  // Actualizamos el estado
+  state.nombre      = inputNombre.value.trim(); // .trim() elimina espacios al inicio/fin
+  state.cartas      = barajar(mazo);
+  state.seleccionadas = [];
+  state.movimientos = 0;
+  state.bloqueado   = false;
+  state.iniciado    = true;
 
   parrafoMensaje.textContent = '';
   render();
