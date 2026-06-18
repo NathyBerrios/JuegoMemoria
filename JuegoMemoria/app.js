@@ -11,6 +11,8 @@ let cartas = [];
 let volteadas = [];
 let movimientos = 0;
 let nombre = '';
+//variable de bloqueo
+let bloqueado = false;
 
 const tablero    = document.getElementById('tablero');
 const btnIniciar = document.getElementById('btnIniciar');
