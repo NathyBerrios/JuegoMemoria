@@ -6,13 +6,15 @@ const TODOS_LOS_EMOJIS = [
   '🍎', '🚀', '🐱', '🌵', '🎲', '🎧', '⚽', '🍕',
   '🦋', '🌈', '🐢', '🍦'
 ];
-
-let cartas = [];
-let volteadas = [];
-let movimientos = 0;
-let nombre = '';
-//variable de bloqueo
-let bloqueado = false;
+//Estado
+const state = {
+  nombre: '',           // nombre del jugador
+  cartas: [],           // arreglo de objetos { emoji, encontrada, volteada }
+  seleccionadas: [],    // índices de las cartas seleccionadas en el turno actual (máx 2)
+  movimientos: 0,       // contador de pares intentados
+  bloqueado: false,     // TRUE mientras se resuelve un par → bloquea nuevos clicks
+  iniciado: false       // FALSE antes de que el jugador haga clic en Iniciar
+};
 
 const tablero    = document.getElementById('tablero');
 const btnIniciar = document.getElementById('btnIniciar');
