@@ -54,6 +54,8 @@
   let volteadas = [];   // índices volteados en el turno actual
   let movimientos = 0;
   let nombre = '';
+//variable bloqueo 
+  let bloqueado = false;
 
   const tablero = document.getElementById('tablero');
 
@@ -67,6 +69,7 @@
     cartas.sort(function () { return Math.random() - 0.5; });
     volteadas = [];
     movimientos = 0;
+    bloqueado = false; 
     document.getElementById('mensaje').textContent = '';
     render();
   });
@@ -100,6 +103,11 @@
 
   function voltearCarta(div) {
     const i = Number(div.dataset.indice);
+//si el tablero esta bloqieado se ignora el click
+    if (bloqueado) return;
+//si la carta ya esta o fue encontrada se ignora el click
+    if (cartas[i].encontrada) return;
+    if (volteadas.includes(i)) return;
     div.textContent = cartas[i].emoji;
     div.classList.add('volteada');
     volteadas.push(i);
@@ -110,16 +118,25 @@
 
       const a = volteadas[0];
       const b = volteadas[1];
-      const divs = tablero.children;
-
-      if (divs[a].textContent === divs[b].textContent) {
+      //comparacion directa usando el aareglo cartas
+      if (cartas[a].emoji === cartas[b].emoji) {
+        // Par correcto
         cartas[a].encontrada = true;
         cartas[b].encontrada = true;
+
+        // Actualizamos visualmente sin redibujar todo el tablero
+        const divs = tablero.children;
+        divs[a].classList.remove('volteada');
+        divs[b].classList.remove('volteada');
         divs[a].classList.add('encontrada');
         divs[b].classList.add('encontrada');
         volteadas = [];
         revisarVictoria();
+
       } else {
+        // Par incorrecto: bloqueamos y ocultamos después de 900ms
+        bloqueado = true; // FIX: bloqueamos el tablero
+        
         setTimeout(function () {
           divs[a].textContent = '?';
           divs[b].textContent = '?';
