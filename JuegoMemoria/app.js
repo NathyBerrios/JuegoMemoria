@@ -55,21 +55,38 @@ function iniciarJuego() {
 }
 
 function render() {
+  // Limpiamos el tablero antes de redibujar
   tablero.innerHTML = '';
-  cartas.forEach(function(carta, indice) {
+
+  // Por cada carta en el estado, creamos un elemento div
+  state.cartas.forEach(function(carta, indice) {
     const div = document.createElement('div');
     div.classList.add('carta');
-    div.dataset.indice = indice;
-    div.textContent = carta.encontrada ? carta.emoji : '?';
 
-    // Un listener por cada carta, dentro de render()
-    div.addEventListener('click', function() {
-      voltearCarta(div);
-    });
+    // Guardamos el índice como dato del elemento (lo usamos en el click)
+    div.dataset.indice = indice;
+
+    // Decidimos qué mostrar según el estado de la carta
+    if (carta.encontrada) {
+      // Par encontrado: mostramos emoji con fondo verde
+      div.classList.add('encontrada');
+      div.textContent = carta.emoji;
+
+    } else if (carta.volteada) {
+      // Volteada en este turno: mostramos emoji con fondo claro
+      div.classList.add('volteada');
+      div.textContent = carta.emoji;
+
+    } else {
+      // Boca abajo: mostramos símbolo de pregunta
+      div.textContent = '?';
+    }
 
     tablero.appendChild(div);
   });
-  parrafoMovimientos.textContent = 'Movimientos: ' + movimientos;
+
+  // Actualizamos el contador de movimientos
+  parrafoMovimientos.textContent = 'Movimientos: ' + state.movimientos;
 }
 
 function voltearCarta(div) {
