@@ -8,38 +8,48 @@
 </head>
 <body>
 
-  <h1>🧠 Juego de Memoria</h1>
+  <header>
+    <h1>🧠 Juego de Memoria</h1>
+  </header>
 
-  <div id="controles">
-    <input
-      type="text"
-      id="inputNombre"
-      placeholder="Escribe tu nombre..."
-      maxlength="30"
-    >
+  <main>
 
-    <select id="selectDificultad">
-      <option value="facil">Fácil (4 pares)</option>
-      <option value="normal" selected>Normal (8 pares)</option>
-      <option value="dificil">Difícil (12 pares)</option>
-    </select>
+    <section aria-label="Controles del juego">
+      <div id="controles">
 
-    <button id="btnIniciar">Iniciar juego</button>
-  </div>
+        <label for="inputNombre" class="sr-only">Tu nombre</label>
+        <input
+          type="text"
+          id="inputNombre"
+          placeholder="Escribe tu nombre..."
+          maxlength="30"
+        >
 
-  <!-- Contador de movimientos -->
-  <p id="movimientos">Movimientos: 0</p>
+        <label for="selectDificultad" class="sr-only">Dificultad</label>
+        <select id="selectDificultad">
+          <option value="facil">Fácil (4 pares)</option>
+          <option value="normal" selected>Normal (8 pares)</option>
+          <option value="dificil">Difícil (12 pares)</option>
+        </select>
 
-  <!-- Tablero donde van las cartas -->
-  <div id="tablero"></div>
+        <button id="btnIniciar" type="button">Iniciar juego</button>
+      </div>
+    </section>
 
-  <!-- Mensaje de victoria -->
-  <p id="mensaje"></p>
+    <p id="movimientos" aria-live="polite">Movimientos: 0</p>
 
-  <!-- Hint sobre tecla rápida -->
-  <p id="hint" style="color: gray; font-size: 0.85rem;">
-    Tip: presiona <kbd>R</kbd> para reiniciar rápido
-  </p>
+
+    <section aria-label="Tablero de juego">
+      <div id="tablero" role="grid"></div>
+    </section>
+
+    <p id="mensaje" aria-live="assertive"></p>
+
+  </main>
+
+  <footer>
+    <p id="hint">Tip: presiona <kbd>R</kbd> para reiniciar rápido</p>
+  </footer>
 
   <script src="app.js"></script>
 </body>
