@@ -78,13 +78,25 @@
       div.className = 'carta';
       div.dataset.indice = i;
       div.textContent = cartas[i].encontrada ? cartas[i].emoji : '?';
-      div.addEventListener('click', function () {
-        voltearCarta(div);
-      });
+      //eliminar
+     // div.addEventListener('click', function () {
+     //  voltearCarta(div);
+     // });
       tablero.appendChild(div);
     }
     document.getElementById('movimientos').textContent = 'Movimientos: ' + movimientos;
   }
+  //agregar 
+  // Detectamos si el click fue en una carta leyendo event.target.
+  // Así no importa cuántas cartas haya: solo hay UN listener siempre.
+  tablero.addEventListener('click', function(evento) {
+    const div = evento.target;
+
+    // Solo actuamos si el click fue sobre una carta
+    if (!div.classList.contains('carta')) return;
+
+    voltearCarta(div);
+  });
 
   function voltearCarta(div) {
     const i = Number(div.dataset.indice);
