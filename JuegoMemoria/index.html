@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Juego de Memoria</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <h1>🧠 Juego de Memoria</h1>
+
+  <div id="controles">
+    <input
+      type="text"
+      id="inputNombre"
+      placeholder="Escribe tu nombre..."
+      maxlength="30"
+    >
+
+    <select id="selectDificultad">
+      <option value="facil">Fácil (4 pares)</option>
+      <option value="normal" selected>Normal (8 pares)</option>
+      <option value="dificil">Difícil (12 pares)</option>
+    </select>
+
+    <button id="btnIniciar">Iniciar juego</button>
+  </div>
+
+  <p id="movimientos">Movimientos: 0</p>
+
+  <div id="tablero"></div>
+
+  <p id="mensaje"></p>
+
+  <p id="hint" style="color: gray; font-size: 0.85rem;">
+    Tip: presiona <kbd>R</kbd> para reiniciar rápido
+  </p>
+
+  <script src="app.js"></script>
+</body>
+</html>
