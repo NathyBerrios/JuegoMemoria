@@ -122,7 +122,8 @@
   function revisarVictoria() {
     const todasEncontradas = cartas.every(function (c) { return c.encontrada; });
     if (todasEncontradas) {
-      document.getElementById('mensaje').innerHTML = '¡Ganaste, ' + nombre + '! 🎉';
+//Usar textContent en vez de innerHTML
+      document.getElementById('mensaje').textContent = '¡Ganaste, ' + nombre + '! 🎉';
     }
   }
 </script>
