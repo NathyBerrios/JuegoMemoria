@@ -35,7 +35,10 @@
 <script>
   const EMOJIS = ['🍎', '🚀', '🐱', '🌵', '🎲', '🎧', '⚽', '🍕']; // 8 pares = 16 cartas
 
-  //se agrupan en un objeto const state
+  // BUG (Arquitectura): las variables estaban sueltas una por una.
+  // FIX: se agrupan en un objeto const state = {}
+  // Ventaja: toda la información del juego vive en un solo lugar.
+  // Es más fácil de leer, de reiniciar y de depurar.
   const state = {
     nombre: '',
     cartas: [],
@@ -47,7 +50,7 @@
   const tablero = document.getElementById('tablero');
 
   document.getElementById('iniciar').addEventListener('click', function () {
-    //leer desde state en vez de variables sueltas
+    // FIX: leemos desde state en vez de variables sueltas
     state.nombre    = document.getElementById('nombre').value.trim();
     state.cartas    = [];
     state.volteadas = [];
@@ -55,17 +58,19 @@
     state.bloqueado   = false;
 
     EMOJIS.forEach(function (e) {
-      cartas.push({ emoji: e, encontrada: false });
-      cartas.push({ emoji: e, encontrada: false });
+      state.cartas.push({ emoji: e, encontrada: false });
+      state.cartas.push({ emoji: e, encontrada: false });
     });
     state.cartas.sort(function () { return Math.random() - 0.5; });
   
-    //textContent en vez de innerHTML
+    // FIX (Seguridad): textContent en vez de innerHTML para limpiar el mensaje
     document.getElementById('mensaje').textContent = '';
     render();
   });
 
   function render() {
+      // Nota: este innerHTML = '' está bien SOLO aquí, al iniciar la partida.
+    // El problema en el original era llamarlo en cada click.
     tablero.innerHTML = '';
     for (let i = 0; i < state.cartas.length; i++) {
       const div = document.createElement('div');
@@ -77,7 +82,9 @@
     document.getElementById('movimientos').textContent = 'Movimientos: ' + state.movimientos;
   }
 
-  //un solo listener en el tablero que detecta qué carta fue clickeada.
+  // FIX (Arquitectura — delegación de eventos):
+  // BUG original: había un addEventListener por cada carta dentro de render().
+  // FIX: un solo listener en el tablero que detecta que carta fue clickeada.
   tablero.addEventListener('click', function(evento) {
     const div = evento.target;
     // Solo actuamos si el click fue sobre una carta
@@ -87,9 +94,13 @@
 
   function voltearCarta(div) {
     const i = Number(div.dataset.indice);
-//si el tablero esta bloqieado se ignora el click
+    // FIX (Bug funcional — bloqueo): sin este chequeo se podía voltear
+    // una tercera carta mientras el setTimeout aún no había corrido.
     if (state.bloqueado) return;
-//si la carta ya esta o fue encontrada se ignora el click
+
+    // FIX (Bug funcional — doble click): sin este chequeo, hacer doble click
+    // en la misma carta la agregaba dos veces a volteadas[], y al comparar
+    // a === b el emoji coincidía consigo mismo.
     if (state.cartas[i].encontrada) return;
     if (state.volteadas.includes(i)) return;
     div.textContent = state.cartas[i].emoji;
@@ -103,8 +114,17 @@
       const a = state.volteadas[0];
       const b = state.volteadas[1];
 
+      // FIX (Bug funcional — const divs):
+      // BUG original: 'const divs' se declaraba dentro del if de par correcto,
+      // pero se usaba también en el else de par incorrecto que está fuera de ese if.
+      // Eso causaba un ReferenceError: divs is not defined en el bloque else.
+      //
+      // FIX: declaramos divs una sola vez aquí arriba, antes del if/else,
+      // para que esté disponible en ambos bloques.
       const divs = tablero.children;
-      //comparacion directa usando el aareglo cartas
+
+      // FIX (Arquitectura): comparamos usando el estado (state.cartas),
+      // no el texto del DOM (divs[a].textContent).
       if (state.cartas[a].emoji === state.cartas[b].emoji) {
         // Par correcto
         state.cartas[a].encontrada = true;
@@ -126,7 +146,12 @@
           divs[a].classList.remove('volteada');
           divs[b].classList.remove('volteada');
           state.volteadas = [];
-          state.bloqueado = false; //desbloquear DENTRO del setTimeout, después de ocultar las cartas
+                    // FIX (Bug funcional — bloqueado en setTimeout):
+          // BUG original: bloqueado = false nunca se ejecutaba dentro del setTimeout, 
+          // por lo que el tablero quedaba bloqueado para siempre
+          // después del primer par incorrecto
+          // FIX: desbloquear DENTRO del setTimeout, después de ocultar las cartas.
+          state.bloqueado = false; 
         }, 800);
       }
     }
@@ -135,7 +160,10 @@
   function revisarVictoria() {
     const todasEncontradas = state.cartas.every(function (c) { return c.encontrada; });
     if (todasEncontradas) {
-//Usar textContent en vez de innerHTML
+      // BUG (Seguridad — XSS):
+      // El original usaba: mensaje.innerHTML = '¡Ganaste, ' + nombre + '! 🎉'
+      // Si el usuario escribía HTML en el input ese código se ejecutaba en el navegador.
+      // FIX: textContent trata todo como texto plano. Nunca ejecuta HTML.
       const nombreMostrar = state.nombre !== '' ? state.nombre : 'Jugador';
       document.getElementById('mensaje').textContent = '¡Ganaste, ' + nombreMostrar + '! 🎉';
     }
