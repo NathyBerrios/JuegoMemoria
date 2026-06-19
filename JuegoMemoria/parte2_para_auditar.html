@@ -31,128 +31,113 @@
 <p id="movimientos"></p>
 <p id="mensaje"></p>
 
-<!--
-  ============================================================
-  CÓDIGO PARA AUDITAR (Parte 2)
-  Este juego de memoria "funciona", pero tiene bugs y malas prácticas.
-  Si juegas despacio parece correcto; pruébalo con clicks rápidos,
-  doble click sobre una misma carta, o un nombre raro.
 
-  Tu tarea: encontrar los problemas, corregirlos y explicar POR QUÉ
-  estaban mal. Comenta tus correcciones con  // BUG: ...  y  // FIX: ...
-  Debe haber, al menos:
-    - 1 bug funcional
-    - 1 problema de seguridad
-    - 1 olor de arquitectura / rendimiento
-  (En realidad hay más.)
-  ============================================================
--->
 <script>
   const EMOJIS = ['🍎', '🚀', '🐱', '🌵', '🎲', '🎧', '⚽', '🍕']; // 8 pares = 16 cartas
 
-  let cartas = [];      // estado del mazo
-  let volteadas = [];   // índices volteados en el turno actual
-  let movimientos = 0;
-  let nombre = '';
-//variable bloqueo 
-  let bloqueado = false;
+  //se agrupan en un objeto const state
+  const state = {
+    nombre: '',
+    cartas: [],
+    volteadas: [],
+    movimientos: 0,
+    bloqueado: false
+  };
 
   const tablero = document.getElementById('tablero');
 
   document.getElementById('iniciar').addEventListener('click', function () {
-    nombre = document.getElementById('nombre').value;
-    cartas = [];
+    //leer desde state en vez de variables sueltas
+    state.nombre    = document.getElementById('nombre').value.trim();
+    state.cartas    = [];
+    state.volteadas = [];
+    state.movimientos = 0;
+    state.bloqueado   = false;
+
     EMOJIS.forEach(function (e) {
       cartas.push({ emoji: e, encontrada: false });
       cartas.push({ emoji: e, encontrada: false });
     });
-    cartas.sort(function () { return Math.random() - 0.5; });
-    volteadas = [];
-    movimientos = 0;
-    bloqueado = false; 
+    state.cartas.sort(function () { return Math.random() - 0.5; });
+  
+    //textContent en vez de innerHTML
     document.getElementById('mensaje').textContent = '';
     render();
   });
 
   function render() {
     tablero.innerHTML = '';
-    for (let i = 0; i < cartas.length; i++) {
+    for (let i = 0; i < state.cartas.length; i++) {
       const div = document.createElement('div');
       div.className = 'carta';
       div.dataset.indice = i;
-      div.textContent = cartas[i].encontrada ? cartas[i].emoji : '?';
-      //eliminar
-     // div.addEventListener('click', function () {
-     //  voltearCarta(div);
-     // });
+      div.textContent = state.cartas[i].encontrada ? state.cartas[i].emoji : '?';
       tablero.appendChild(div);
     }
-    document.getElementById('movimientos').textContent = 'Movimientos: ' + movimientos;
+    document.getElementById('movimientos').textContent = 'Movimientos: ' + state.movimientos;
   }
-  //agregar 
-  // Detectamos si el click fue en una carta leyendo event.target.
-  // Así no importa cuántas cartas haya: solo hay UN listener siempre.
+
+  //un solo listener en el tablero que detecta qué carta fue clickeada.
   tablero.addEventListener('click', function(evento) {
     const div = evento.target;
-
     // Solo actuamos si el click fue sobre una carta
     if (!div.classList.contains('carta')) return;
-
     voltearCarta(div);
   });
 
   function voltearCarta(div) {
     const i = Number(div.dataset.indice);
 //si el tablero esta bloqieado se ignora el click
-    if (bloqueado) return;
+    if (state.bloqueado) return;
 //si la carta ya esta o fue encontrada se ignora el click
-    if (cartas[i].encontrada) return;
-    if (volteadas.includes(i)) return;
-    div.textContent = cartas[i].emoji;
+    if (state.cartas[i].encontrada) return;
+    if (state.volteadas.includes(i)) return;
+    div.textContent = state.cartas[i].emoji;
     div.classList.add('volteada');
-    volteadas.push(i);
+    state.volteadas.push(i);
 
-    if (volteadas.length === 2) {
-      movimientos++;
-      document.getElementById('movimientos').textContent = 'Movimientos: ' + movimientos;
+    if (state.volteadas.length === 2) {
+      state.movimientos++;
+      document.getElementById('movimientos').textContent = 'Movimientos: ' + state.movimientos;
 
-      const a = volteadas[0];
-      const b = volteadas[1];
+      const a = state.volteadas[0];
+      const b = state.volteadas[1];
+
+      const divs = tablero.children;
       //comparacion directa usando el aareglo cartas
-      if (cartas[a].emoji === cartas[b].emoji) {
+      if (state.cartas[a].emoji === state.cartas[b].emoji) {
         // Par correcto
-        cartas[a].encontrada = true;
-        cartas[b].encontrada = true;
-
-        // Actualizamos visualmente sin redibujar todo el tablero
-        const divs = tablero.children;
+        state.cartas[a].encontrada = true;
+        state.cartas[b].encontrada = true;
         divs[a].classList.remove('volteada');
         divs[b].classList.remove('volteada');
         divs[a].classList.add('encontrada');
         divs[b].classList.add('encontrada');
-        volteadas = [];
+        state.volteadas = [];
         revisarVictoria();
 
       } else {
         // Par incorrecto: bloqueamos y ocultamos después de 900ms
-        bloqueado = true; // FIX: bloqueamos el tablero
-        
+        state.bloqueado = true; // bloqueamos el tablero
+
         setTimeout(function () {
           divs[a].textContent = '?';
           divs[b].textContent = '?';
           divs[a].classList.remove('volteada');
           divs[b].classList.remove('volteada');
-          volteadas = [];
+          state.volteadas = [];
+          state.bloqueado = false; //desbloquear DENTRO del setTimeout, después de ocultar las cartas
         }, 800);
       }
     }
   }
 
   function revisarVictoria() {
-    const todasEncontradas = cartas.every(function (c) { return c.encontrada; });
+    const todasEncontradas = state.cartas.every(function (c) { return c.encontrada; });
     if (todasEncontradas) {
 //Usar textContent en vez de innerHTML
-      document.getElementById('mensaje').textContent = '¡Ganaste, ' + nombre + '! 🎉';
+      const nombreMostrar = state.nombre !== '' ? state.nombre : 'Jugador';
+      document.getElementById('mensaje').textContent = '¡Ganaste, ' + nombreMostrar + '! 🎉';
     }
   }
 </script>
